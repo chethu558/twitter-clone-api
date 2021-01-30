@@ -37,6 +37,7 @@ class CountryCodesSerializer(serializers.ModelSerializer):
 
 
 class PhoneOtp(serializers.ModelSerializer):
+    #phone = serializers. 
     class Meta:
         model = OTP
         fields = ['phone', 'otp']

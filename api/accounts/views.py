@@ -62,7 +62,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 @csrf_exempt
 @api_view(['GET'])
-def country_codes(request):
+def country_codes(request): #list the country codes
     codes = CountryCodes.objects.all()
     serializer = CountryCodesSerializer(codes, many=True)
     return JsonResponse(serializer.data, safe=False)
@@ -71,9 +71,9 @@ def country_codes(request):
 
 #View to validate phone number
 @method_decorator(csrf_exempt, name='dispatch')
-class SendOtp(APIView):
+class SendOtp(APIView): # function send otp
     permission_classes = [permissions.AllowAny]
-    def post(self, request, format=None):
+    def post(self, request, format=None): 
         phone = request.data.get('phone')
         
         if not phone:
@@ -81,16 +81,16 @@ class SendOtp(APIView):
 
         else:
             phone = str(phone)
-            user = User.objects.filter(phone__iexact = phone)
+            user = User.objects.filter(phone__iexact = phone) #check if user exists with the phone
             if user.exists():
                 return Response({'Res':'Phone number already exists'})
             else:
-                otp = send_otp(phone=phone)
+                otp = send_otp(phone=phone) #send otp
                 if otp:
                     data = {'phone':phone, 'otp':otp}
                     serializer = PhoneOtp(data=data)
                     if serializer.is_valid():
-                        serializer.save()                      
+                        serializer.save()       #save otp to database               
                         return Response({'Msg': "Hello, {} your otp is {}".format(phone, otp)})
                     return Response(serializer.errors, status=400)                
                 else:
@@ -98,7 +98,7 @@ class SendOtp(APIView):
                 
         return Response(status=500)
 
-class SendOtpAgain(APIView):
+class SendOtpAgain(APIView): #To resend otp
     permission_classes = [permissions.AllowAny]
     def post(self, request, format=None):
         phone = request.data.get('phone')
@@ -112,20 +112,20 @@ class SendOtpAgain(APIView):
             if user.exists():
                 return Response({'Res':'Phone number already exists'})
             else:
-                obj = OTP.objects.filter(phone__iexact=phone)
+                obj = OTP.objects.filter(phone__iexact=phone) #check if otp exists already delete it
                 if obj.exists():
                     old = obj.first()
                     if old:
                        old.delete()
                        otp = send_otp(phone)
                 else:
-                    otp = send_otp(phone)
+                    otp = send_otp(phone) 
 
                 if otp:
                     data = {'phone':phone, 'otp':otp}
                     serializer = PhoneOtp(data=data)
                     if serializer.is_valid():
-                        serializer.save()                      
+                        serializer.save()     # save otp to database                 
                         return Response({'Msg': "Hello, {} your otp is {}".format(phone, otp)})
                     return Response(serializer.errors, status=400)                   
                 else:
