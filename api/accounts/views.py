@@ -24,7 +24,8 @@ from rest_framework  import permissions
 from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_200_OK
+    HTTP_200_OK,
+    HTTP_202_ACCEPTED
 )
 
 
@@ -38,21 +39,41 @@ User = get_user_model()
 #View to authenticate user
 class Authenticate(APIView):
      permission_classes = [permissions.AllowAny]
-
+    
      def post(self, request, format=None):
         username = request.data.get("username")
         password = request.data.get("password")
+
         if not username  or not password:
             return Response({'error': 'Provide all credintials','status':HTTP_400_BAD_REQUEST})
         user = authenticate(username=username, password=password)
         if not user:
-            return Response({'error': 'Invalid Credentials', 'status':HTTP_404_NOT_FOUND})
+          return Response({'error': 'Invalid Credentials', 'status':HTTP_404_NOT_FOUND})
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'user':user.id})
+        return Response({'token': token.key, 'user':user.id}, status=HTTP_200_OK)
 
 
-class CreateUser(APIView):
-    pass
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def create_account(request):
+    phone = str(request.data.get("phone"))
+    user = User.objects.filter(phone__iexact = phone) 
+    
+    if user:
+        return Response({"message":"User does exist with the phone number", "code":1}, status=HTTP_200_OK)   
+    else:
+        is_verified = is_phone_verified(phone=phone)
+        if is_verified==False:
+            return Response({"message":"Your phone number is not verified", "code":1}, status=HTTP_200_OK)
+        else:
+            data = request.data
+            serializer = UserSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"Data":serializer.data}, status=HTTP_200_OK)
+
+            return Response({"Data":serializer.errors}, status=HTTP_200_OK)
 
 
 
@@ -65,7 +86,7 @@ class UserViewSet(viewsets.ModelViewSet):
 def country_codes(request): #list the country codes
     codes = CountryCodes.objects.all()
     serializer = CountryCodesSerializer(codes, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    return Response(serializer.data)
 
 
 
@@ -77,38 +98,11 @@ class SendOtp(APIView): # function send otp
         phone = request.data.get('phone')
         
         if not phone:
-            return Response({'Msg':'Phone number required'})
+            return Response({'message':'Phone number required'})
 
         else:
             phone = str(phone)
             user = User.objects.filter(phone__iexact = phone) #check if user exists with the phone
-            if user.exists():
-                return Response({'Res':'Phone number already exists'})
-            else:
-                otp = send_otp(phone=phone) #send otp
-                if otp:
-                    data = {'phone':phone, 'otp':otp}
-                    serializer = PhoneOtp(data=data)
-                    if serializer.is_valid():
-                        serializer.save()       #save otp to database               
-                        return Response({'Msg': "Hello, {} your otp is {}".format(phone, otp)})
-                    return Response(serializer.errors, status=400)                
-                else:
-                    return Response({'Res':'OTP can not be sent'}) 
-                
-        return Response(status=500)
-
-class SendOtpAgain(APIView): #To resend otp
-    permission_classes = [permissions.AllowAny]
-    def post(self, request, format=None):
-        phone = request.data.get('phone')
-        
-        if not phone:
-            return Response({'Msg':'Phone number required'})
-
-        else:
-            phone = str(phone)
-            user = User.objects.filter(phone__iexact = phone)
             if user.exists():
                 return Response({'Res':'Phone number already exists'})
             else:
@@ -117,21 +111,20 @@ class SendOtpAgain(APIView): #To resend otp
                     old = obj.first()
                     if old:
                        old.delete()
-                       otp = send_otp(phone)
+                       otp = send_otp(phone=phone)
                 else:
-                    otp = send_otp(phone) 
-
+                    otp = send_otp(phone=phone)
+                
                 if otp:
                     data = {'phone':phone, 'otp':otp}
                     serializer = PhoneOtp(data=data)
                     if serializer.is_valid():
-                        serializer.save()     # save otp to database                 
-                        return Response({'Msg': "Hello, {} your otp is {}".format(phone, otp)})
-                    return Response(serializer.errors, status=400)                   
+                        serializer.save()       #save otp to database               
+                        return Response({'message': "Hello, {} your otp is {}".format(phone, otp)}, status=HTTP_202_ACCEPTED)
+                    return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)                
                 else:
-                    return Response({'Res':'OTP can not be sent'})                  
-            return Response({'Msg':'Something went wrong'}) 
-
+                    return Response({'message':'OTP can not be sent'}) 
+                
         return Response(status=500)
 
 
@@ -151,21 +144,30 @@ class ValidateOTP(APIView):
                    obj.update(
                        verified = True
                    )
-                   return Response({'Msg':'Valid otp'})
+                   return Response({'message':'Valid otp', 'code':1}, status=HTTP_200_OK)
                 else:
-                   return Response({'Msg':'Invalid otp'})
+                   return Response({'message':'Incorect Otp', 'code':0}, status=HTTP_200_OK)
         else:
-            return Response({'Msg':'Please provide the otp'})
+            return Response({'message':'Please provide the otp', 'code':2}, status=HTTP_200_OK)
 
-        return Response({'Msg':'Something went wrong'})
+        return Response({'message':'Something went wrong', 'code':2}, status=HTTP_200_OK)
 
 
 #Send otp
 def send_otp(phone=None):
     otp = random.randint(99999,999999)
     if phone:
-        # URL = "https://2factor.in/API/R1/?module=TRANS_SMS&apikey=1c3c9b6e-6a8f-11ea-9fa5-0200cd936042&to="+str(phone)+"&from=KMRCHE&templatename=Verify+OTP&var1="+str(phone)+"&var2="+str(otp)
-        # if requests.get(URL):
+        #URL = "https://2factor.in/API/R1/?module=TRANS_SMS&apikey=1c3c9b6e-6a8f-11ea-9fa5-0200cd936042&to="+str(phone)+"&from=KMRCHE&templatename=Verify+OTP&var1="+str(phone)+"&var2="+str(otp)
+        #if requests.get(URL):
         return otp
     
+    return False 
+
+def is_phone_verified(phone=None):
+    obj = OTP.objects.filter(phone__iexact=phone)
+    if obj.exists():
+        obj = obj.first()
+        if  obj.verified == True:
+            return True
     return False
+    

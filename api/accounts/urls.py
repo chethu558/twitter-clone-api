@@ -13,6 +13,7 @@ urlpatterns = [
     path('authenticate/', views.Authenticate.as_view(), name="authenticate"),
     path('countrycodes/', views.country_codes, name="contry_codes"),
     path('get_otp/', views.SendOtp.as_view(), name="get-otp"),
-    path('resend_otp/otp/', views.SendOtpAgain.as_view(), name="resend-otp"),
+    # path('resend_otp/otp/', views.SendOtpAgain.as_view(), name="resend-otp"),
     path('verify/otp/', views.ValidateOTP.as_view(), name="verify-otp"),
+    path('create_account/', views.create_account, name="create-account")
 ]
