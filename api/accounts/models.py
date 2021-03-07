@@ -8,20 +8,21 @@ from django.core.validators import RegexValidator,  EmailValidator
 
 class CustomUser(AbstractUser):
     username = models.CharField(max_length=50, default="User")
-    phone = models.CharField(max_length=10, unique=True)
+    phone = models.CharField(max_length=10, unique=True, null=True, blank=False)
 
     USERNAME_FIELD = 'phone'
     REQUIRED_FIELDS = []
 
-    email = models.EmailField(max_length=256, null=True, blank=True)
+    email = models.EmailField(max_length=256, unique=True, null=True, blank=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
 
 class CountryCodes(models.Model):
+    iso_codes = models.CharField(max_length=10, null=False, blank=False, default='IN')
     code = models.IntegerField(null=False, blank=False)
-
+  
     def __str__(self):
         return self.code
 
