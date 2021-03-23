@@ -24,7 +24,7 @@ class CountryCodes(models.Model):
     code = models.IntegerField(null=False, blank=False)
   
     def __str__(self):
-        return self.code
+        return str(self.code)
 
 
 

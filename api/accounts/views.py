@@ -1,6 +1,7 @@
 import random 
 import os
-import requests 
+import requests
+import re
 
 from rest_framework import viewsets
 
@@ -25,7 +26,9 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
     HTTP_200_OK,
-    HTTP_202_ACCEPTED
+    HTTP_202_ACCEPTED,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+    HTTP_302_FOUND
 )
 
 
@@ -45,12 +48,12 @@ class Authenticate(APIView):
         password = request.data.get("password")
 
         if not username  or not password:
-            return Response({'error': 'Provide all credintials','status':HTTP_400_BAD_REQUEST})
+            return Response({'error': 'Provide all credintials.', 'code':4}, status=HTTP_200_OK)
         user = authenticate(username=username, password=password)
         if not user:
-          return Response({'error': 'Invalid Credentials', 'status':HTTP_404_NOT_FOUND})
+          return Response({'error': 'Invalid Credentials.', 'code':4}, status=HTTP_200_OK)
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key, 'user':user.id}, status=HTTP_200_OK)
+        return Response({'token': token.key, 'user':user.id, 'code':3}, status=HTTP_200_OK)
 
 
 @csrf_exempt
@@ -98,13 +101,16 @@ class SendOtp(APIView): # function send otp
         phone = request.data.get('phone')
         
         if not phone:
-            return Response({'message':'Phone number required'})
+            return Response({'message':'Phone number required.', 'code':0}, status=HTTP_200_OK)
+
+        elif not re.match('^\+?1?\d{9,15}$', phone):
+            return Response({'message':'Incorrect phone number.', 'code':1}, status=HTTP_200_OK)
 
         else:
             phone = str(phone)
             user = User.objects.filter(phone__iexact = phone) #check if user exists with the phone
             if user.exists():
-                return Response({'Res':'Phone number already exists'})
+                return Response({'Res':'Phone number already exists.', 'code':4}, status=HTTP_200_OK)
             else:
                 obj = OTP.objects.filter(phone__iexact=phone) #check if otp exists already delete it
                 if obj.exists():
@@ -120,12 +126,12 @@ class SendOtp(APIView): # function send otp
                     serializer = PhoneOtp(data=data)
                     if serializer.is_valid():
                         serializer.save()       #save otp to database               
-                        return Response({'message': "Hello, {} your otp is {}".format(phone, otp)}, status=HTTP_202_ACCEPTED)
+                        return Response({'message': "Hello, {} your otp is {}".format(phone, otp), 'code':2}, status=HTTP_202_ACCEPTED)
                     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)                
                 else:
-                    return Response({'message':'OTP can not be sent'}) 
+                    return Response({'message':'OTP can not be sent.', code:5}, status=HTTP_500_INTERNAL_SERVER_ERROR) 
                 
-        return Response(status=500)
+        return Response({'message':'Something went wrong.', 'code':5}, status=HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 #View to validate phone otp
@@ -148,9 +154,9 @@ class ValidateOTP(APIView):
                 else:
                    return Response({'message':'Incorect Otp', 'code':0}, status=HTTP_200_OK)
         else:
-            return Response({'message':'Please provide the otp', 'code':2}, status=HTTP_200_OK)
+            return Response({'message':'Please provide the otp', 'code':4}, status=HTTP_200_OK)
 
-        return Response({'message':'Something went wrong', 'code':2}, status=HTTP_200_OK)
+        return Response({'message':'Something went wrong', 'code':5}, status=HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 #Send otp
