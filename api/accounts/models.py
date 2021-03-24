@@ -34,7 +34,7 @@ class OTP(models.Model):
     otp = models.CharField(max_length=6, blank=False, null=False, unique=False)
     verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-   
+    
     def __str__(self):
         return str(self.phone)+'s otp'
 

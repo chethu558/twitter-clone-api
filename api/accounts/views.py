@@ -2,6 +2,9 @@ import random
 import os
 import requests
 import re
+from datetime import datetime
+import time
+
 
 from rest_framework import viewsets
 
@@ -104,7 +107,10 @@ class SendOtp(APIView): # function send otp
             return Response({'message':'Phone number required.', 'code':0}, status=HTTP_200_OK)
 
         elif not re.match('^\+?1?\d{9,15}$', phone):
-            return Response({'message':'Incorrect phone number.', 'code':1}, status=HTTP_200_OK)
+            return Response({'message':'Invalid phone number.', 'code':1}, status=HTTP_200_OK)
+       
+        elif len(phone) != 10:
+            return Response({'message':'Invalid phone number.', 'code':1}, status=HTTP_200_OK)
 
         else:
             phone = str(phone)
@@ -125,7 +131,7 @@ class SendOtp(APIView): # function send otp
                     data = {'phone':phone, 'otp':otp}
                     serializer = PhoneOtp(data=data)
                     if serializer.is_valid():
-                        serializer.save()       #save otp to database               
+                        serializer.save()  #save otp to database               
                         return Response({'message': "Hello, {} your otp is {}".format(phone, otp), 'code':2}, status=HTTP_202_ACCEPTED)
                     return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)                
                 else:
@@ -145,14 +151,21 @@ class ValidateOTP(APIView):
             obj = OTP.objects.filter(phone__iexact=phone)
             if obj.exists():
                 old = obj.first()
-                if str(sent_otp)==str(old.otp):
-                    
+                sent_time = datetime.timestamp(old.created_at)
+                current_time = time.time()
+                time_diff = current_time - sent_time
+
+                # print('sent time {}'.format(sent_time))
+                # print('current time {}'.format(current_time))
+                # print('time diff {}'.format(time_diff))
+
+                if str(sent_otp)==str(old.otp) and time_diff<=600:
                    obj.update(
                        verified = True
                    )
                    return Response({'message':'Valid otp', 'code':1}, status=HTTP_200_OK)
                 else:
-                   return Response({'message':'Incorect Otp', 'code':0}, status=HTTP_200_OK)
+                   return Response({'message':'Invalid otp', 'code':0}, status=HTTP_200_OK)
         else:
             return Response({'message':'Please provide the otp', 'code':4}, status=HTTP_200_OK)
 
