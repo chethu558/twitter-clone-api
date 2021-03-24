@@ -139,6 +139,7 @@ class ValidateOTP(APIView):
             obj = OTP.objects.filter(phone__iexact=phone)
             if obj.exists():
                 old = obj.first()
+                #we are checking otp expiry time
                 if str(sent_otp)==str(old.otp):
                     
                    obj.update(
