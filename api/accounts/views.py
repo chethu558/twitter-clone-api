@@ -159,7 +159,7 @@ class ValidateOTP(APIView):
                 # print('current time {}'.format(current_time))
                 # print('time diff {}'.format(time_diff))
 
-                if str(sent_otp)==str(old.otp) and time_diff<=600:
+                if str(sent_otp)==str(old.otp) and time_diff<=600:    
                    obj.update(
                        verified = True
                    )
