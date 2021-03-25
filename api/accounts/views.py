@@ -67,11 +67,11 @@ def create_account(request):
     user = User.objects.filter(phone__iexact = phone) 
     
     if user:
-        return Response({"message":"User does exist with the phone number", "code":1}, status=HTTP_200_OK)   
+        return Response({"message":"User does exist with the phone number", "code":2}, status=HTTP_200_OK)   
     else:
         is_verified = is_phone_verified(phone=phone)
         if is_verified==False:
-            return Response({"message":"Your phone number is not verified", "code":1}, status=HTTP_200_OK)
+            return Response({"message":"Your phone number is not verified", "code":4}, status=HTTP_400_BAD_REQUEST)
         else:
             data = request.data
             serializer = UserSerializer(data=data)

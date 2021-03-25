@@ -7,7 +7,7 @@ from django.core.validators import RegexValidator,  EmailValidator
 # Create your models here.
 
 class CustomUser(AbstractUser):
-    username = models.CharField(max_length=50, default="User")
+    username = models.CharField(max_length=256, unique=True, null=True, blank=False)
     phone = models.CharField(max_length=10, unique=True, null=True, blank=False)
 
     USERNAME_FIELD = 'phone'
