@@ -16,6 +16,7 @@ from django.utils.decorators import method_decorator
 from django.contrib.auth import authenticate
 from django.db.models import Q
 
+
 User = get_user_model()
 
 #rest_framework
@@ -116,7 +117,7 @@ class SendOtp(APIView): # function send otp
             phone = str(phone)
             user = User.objects.filter(phone__iexact = phone) #check if user exists with the phone
             if user.exists():
-                return Response({'Res':'Phone number already exists.', 'code':4}, status=HTTP_200_OK)
+                return Response({'message':'Phone number already exists.', 'code':4}, status=HTTP_200_OK)
             else:
                 obj = OTP.objects.filter(phone__iexact=phone) #check if otp exists already delete it
                 if obj.exists():
@@ -163,13 +164,13 @@ class ValidateOTP(APIView):
                    obj.update(
                        verified = True
                    )
-                   return Response({'message':'Valid otp', 'code':1}, status=HTTP_200_OK)
+                   return Response({'message':'Valid otp.', 'code':1}, status=HTTP_200_OK)
                 else:
-                   return Response({'message':'Invalid otp', 'code':0}, status=HTTP_200_OK)
+                   return Response({'message':'Invalid otp.', 'code':0}, status=HTTP_200_OK)
         else:
-            return Response({'message':'Please provide the otp', 'code':4}, status=HTTP_200_OK)
+            return Response({'message':'Please provide the otp.', 'code':4}, status=HTTP_200_OK)
 
-        return Response({'message':'Something went wrong', 'code':5}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({'message':'Something went wrong.', 'code':5}, status=HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 #Send otp
@@ -189,4 +190,19 @@ def is_phone_verified(phone=None):
         if  obj.verified == True:
             return True
     return False
+
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def verify_token(request):
+    token = str(request.data.get("token"))
+    print(token)
+    is_exists = Token.objects.filter(key__iexact = token) 
+    print(is_exists)
+    if is_exists:
+        return Response({"message":"Valid token", "code":3}, status=HTTP_200_OK)   
+    else:
+        return Response({"message":"Invalid token", "code":4}, status=HTTP_200_OK)
     
