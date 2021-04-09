@@ -11,4 +11,5 @@ from rest_framework.routers import DefaultRouter
 urlpatterns = [
     path('', views.index, name="index"),
     path('account/', include('api.accounts.urls')),
+    path('posts/', include('api.posts.urls')),
 ]

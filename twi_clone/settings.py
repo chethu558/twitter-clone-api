@@ -45,7 +45,8 @@ INSTALLED_APPS = [
 
     #custom apps
      'api',
-     'api.accounts'
+     'api.accounts',
+     'api.posts'
 ]
 
 
@@ -92,6 +93,16 @@ DATABASES = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
+}
+
+
+#rest_framework defalt settings
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ]
 }
 
 

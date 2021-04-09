@@ -13,7 +13,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
 from django.db.models import Q
 
 
@@ -205,4 +205,9 @@ def verify_token(request):
         return Response({"message":"Valid token", "code":3}, status=HTTP_200_OK)   
     else:
         return Response({"message":"Invalid token", "code":4}, status=HTTP_200_OK)
+
+@csrf_exempt
+def  signout(request, id):
+    logout(request)
+    return JsonResponse({"message":"Successfully Signed Out.", "code":3}, status=HTTP_200_OK)
     
