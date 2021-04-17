@@ -46,3 +46,4 @@ class PhoneOtp(serializers.ModelSerializer):
             otp = super(PhoneOtp, self).create(validated_data)
             otp.save()
             return True
+

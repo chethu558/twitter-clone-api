@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
-
+from django.db.models.signals import pre_save, post_save
+from django.dispatch import receiver
 from django.core.validators import RegexValidator,  EmailValidator
 
 # Create your models here.
@@ -37,6 +38,33 @@ class OTP(models.Model):
     
     def __str__(self):
         return str(self.phone)+'s otp'
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    avatar = models.ImageField(default="default.jpg", upload_to="profile_pics")
+    backgroung_img = models.ImageField(default="default.jpg", upload_to="background_pics")
+    title = models.CharField(max_length=100, null=True)
+    description = models.CharField(max_length=256, null=True)
+    url = models.CharField(max_length=100, null=True)
+    dob = models.DateField(auto_now=False, auto_now_add=False, null=True)
+    location = models.CharField(max_length=100, null=True)
+
+    
+    def __str__(self):
+        return self.user.phone + ' Profile'
+
+
+
+@receiver(post_save, sender=CustomUser)
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=CustomUser)
+def save_profile(sender, instance, **kwargs):
+        instance.profile.save()
 
 
 

@@ -198,9 +198,7 @@ def is_phone_verified(phone=None):
 @permission_classes([permissions.AllowAny])
 def verify_token(request):
     token = str(request.data.get("token"))
-    print(token)
     is_exists = Token.objects.filter(key__iexact = token) 
-    print(is_exists)
     if is_exists:
         return Response({"message":"Valid token", "code":3}, status=HTTP_200_OK)   
     else:

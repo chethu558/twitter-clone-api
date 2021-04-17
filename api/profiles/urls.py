@@ -10,7 +10,5 @@ router = DefaultRouter()
 #router.register(r'', views.UserViewSet)
 
 urlpatterns = [
-    path('tweet/', views.Tweets.as_view(), name="tweet"),
-    path('like/', views.like_dislike, name="like-dislike"),
-    path('comment/', views.Comment.as_view(), name="comment"),
+    path('<int:id>', views.ProfileUpdateDelete.as_view(), name="profile-edit"),
 ]

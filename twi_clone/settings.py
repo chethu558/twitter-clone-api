@@ -46,7 +46,8 @@ INSTALLED_APPS = [
     #custom apps
      'api',
      'api.accounts',
-     'api.posts'
+     'api.posts',
+     'api.profiles',
 ]
 
 
