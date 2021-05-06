@@ -1,9 +1,9 @@
 from django.db import migrations
-from api.accounts.models import CustomUser
+from api.accounts.models import Users
 
 class Migration(migrations.Migration):
     def seed_data(apps, shcema_editor):
-        user = CustomUser(username="Chethan",
+        user = Users(username="Chethan",
                          phone="7975506729",
                          is_staff=True,
                          is_superuser=True)

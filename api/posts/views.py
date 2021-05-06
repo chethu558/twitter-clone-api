@@ -1,4 +1,3 @@
-from django.contrib.auth.models import User, Group
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -115,3 +114,17 @@ class Comment(APIView):
             serializer.save(tweet = tweet, user=self.request.user)
             return Response({"Data":serializer.data}, status=HTTP_200_OK)
         return Response({"Data":serializer.errors}, status=HTTP_200_OK)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def total_likes(request, tweet_id): 
+    likes = Likes.objects.filter(tweet=tweet_id).count()
+    return Response({"likes":likes}, status=HTTP_200_OK)
+
+@csrf_exempt
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def total_comments(request, tweet_id): 
+    comments = Comments.objects.filter(tweet=tweet_id).count()
+    return Response({"comments":comments}, status=HTTP_200_OK)

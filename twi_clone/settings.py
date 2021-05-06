@@ -91,8 +91,10 @@ WSGI_APPLICATION = 'twi_clone.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'twitter_clone',
+        'USER' : 'root',
+        'PASSWORD' : 'ilovebro',
     }
 }
 
@@ -126,7 +128,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-AUTH_USER_MODEL = "accounts.CustomUser"
+AUTH_USER_MODEL = "accounts.Users"
 
 
 # Internationalization

@@ -16,6 +16,6 @@ urlpatterns = [
     # path('resend_otp/otp/', views.SendOtpAgain.as_view(), name="resend-otp"),
     path('verify/otp/', views.ValidateOTP.as_view(), name="verify-otp"),
     path('create_account/', views.create_account, name="create-account"),
-    path('logout/<int:id>/', views.signout, name="create-account"),
+    path('logout/<int:id>', views.signout, name="create-account"),
     path('verify_token/', views.verify_token, name="verify-token")
 ]

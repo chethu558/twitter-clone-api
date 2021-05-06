@@ -37,7 +37,7 @@ from rest_framework.status import (
 
 
 
-from . models import CustomUser, CountryCodes, OTP
+from . models import CountryCodes, OTP
 from .serializers import UserSerializer, CountryCodesSerializer, PhoneOtp
 
 
@@ -85,7 +85,7 @@ def create_account(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all().order_by('id')
+    queryset = User.objects.all().order_by('id')
     serializer_class = UserSerializer
 
 @csrf_exempt
@@ -205,7 +205,10 @@ def verify_token(request):
         return Response({"message":"Invalid token", "code":4}, status=HTTP_200_OK)
 
 @csrf_exempt
+@api_view(['DELETE'])
 def  signout(request, id):
+    print(request.user)
+    request.user.auth_token.delete()
     logout(request)
     return JsonResponse({"message":"Successfully Signed Out.", "code":3}, status=HTTP_200_OK)
     
